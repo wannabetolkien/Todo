@@ -27,3 +27,25 @@ async function addToDo(req, res) {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 }
+
+async function removeToDo(req,res){
+    try{
+        const {id}=req.params;
+
+        const taskToDelete=await Task.findById(id);
+        if(!taskToDelete) return res.status(400).json({message:"Task doesn't exist"});
+
+        const {email}=req.user;
+        const userToDeleteTaskFrom=await User.findOne({email});
+        userToDeleteTaskFrom.tasks=userToDeleteTaskFrom.tasks.filter(taskId=> id!==taskId.toString());
+        await userToDeleteTaskFrom.save()
+
+        await Task.findByIdAndDelete(id);
+
+        return res.status(200).json({message:"Task has been removed !"});
+    }
+    catch(err){
+        console.error("Error : ",err);
+        return res.status(500).json({message:"Internal Server Error !"});
+    }
+}
